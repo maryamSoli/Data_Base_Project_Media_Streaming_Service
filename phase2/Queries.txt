@@ -1,0 +1,78 @@
+1. Find the top 5 most rated movies by users:
+This query joins the MEDIA, MOVIE, and USER_RATE tables to calculate the average rating for each movie. It then orders the results by the average rating in descending order and limits the output to the top 5 movies.
+SELECT 
+    m.Title, 
+    AVG(ur.Rate) AS Average_Rating 
+FROM 
+    MEDIA m
+JOIN 
+    MOVIE mv ON m.Media_id = mv.movie_media_id
+JOIN 
+    USER_RATE ur ON m.Media_id = ur.Media_id
+GROUP BY 
+    m.Title
+ORDER BY 
+    Average_Rating DESC
+LIMIT 5;
+
+
+
+2. List all users who have subscribed to the 12-month plan and have made at least one payment:
+This query joins the USERS, subscription, and PAYMENT_HISTORY tables to find users who have an active 12-month subscription and have associated payment records.
+SELECT 
+    u.user_name 
+FROM 
+    USERS u
+JOIN 
+    subscription s ON u.user_id = s.User_id
+JOIN 
+    PAYMENT_HISTORY ph ON s.Payment_id = ph.Payment_id
+WHERE 
+    s."12_month_plan" = TRUE;
+
+
+
+3. Find the total number of episodes for each series:
+This query joins the SERIES and EPISODE tables to count the number of episodes for each series.
+
+SELECT 
+    s.series_media_id, 
+    COUNT(*) AS Total_Episodes 
+FROM 
+    SERIES s
+JOIN 
+    EPISODE e ON s.series_media_id = e.series_media_id
+GROUP BY 
+    s.series_media_id;
+
+4. List all movies produced by a specific company (e.g., "Marvel Studios"):
+This query joins the MEDIA, MOVIE, and COMPANY tables to find all movies produced by the specified company.
+
+SELECT 
+    m.Title 
+FROM 
+    MEDIA m
+JOIN 
+    MOVIE mv ON m.Media_id = mv.movie_media_id
+JOIN 
+    COMPANY c ON m.Comp_id = c.Comp_id
+WHERE 
+    c.Comp_name = 'Marvel Studios';
+
+5. Find the most commented media item:
+This query joins the MEDIA and COMMENT tables to count the number of comments for each media item. It then orders the results by the comment count in descending order and selects the top result, which represents the most commented media item.
+
+SELECT 
+    m.Title, 
+    COUNT(*) AS Comment_Count 
+FROM 
+    MEDIA m
+JOIN 
+    COMMENT c ON m.Media_id = c.Media_id
+GROUP BY 
+    m.Title
+ORDER BY 
+    Comment_Count DESC
+LIMIT 1;
+
+These queries demonstrate the use of multiple JOIN operations, aggregate functions (e.g., AVG, COUNT), and data filtering (WHERE clause).
