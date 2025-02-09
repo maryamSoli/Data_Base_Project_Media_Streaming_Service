@@ -1,0 +1,159 @@
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY, -- SERIAL creates a unique integer ID automatically
+    user_name VARCHAR(255) NOT NULL UNIQUE,
+    age INTEGER NOT NULL CHECK (age >= 10),
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL, 
+    CONSTRAINT password_length CHECK (length(password) >= 8) -- Example: Minimum length 8
+);
+
+
+CREATE TABLE subscription (
+    subscription_id SERIAL PRIMARY KEY,
+    start_date DATE NOT NULL CHECK (start_date <= CURRENT_DATE),
+    end_date DATE NOT NULL CHECK (end_date > start_date),
+    "1_month_plan" BOOLEAN, 
+    "12_month_plan" BOOLEAN,
+    CONSTRAINT one_plan_only CHECK (
+        ("1_month_plan" = TRUE AND "12_month_plan" = FALSE) OR 
+        ("1_month_plan" = FALSE AND "12_month_plan" = TRUE) OR
+        ("1_month_plan" = FALSE AND "12_month_plan" = FALSE)
+    )
+);
+
+
+CREATE TABLE PAYMENT_HISTORY (
+    Payment_id SERIAL PRIMARY KEY,
+    Date TIMESTAMP NOT NULL,
+    Amount DECIMAL(10, 2) NOT NULL
+);
+
+
+CREATE TABLE MEDIA (
+    Media_id SERIAL PRIMARY KEY,
+    Genre VARCHAR(255) NOT NULL,
+    Title VARCHAR(255) NOT NULL,
+    Rate INTEGER NOT NULL CHECK (Rate BETWEEN 0 AND 10),
+    Director VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE MOVIE (
+    movie_media_id INTEGER PRIMARY KEY,
+    Production_year INTEGER NOT NULL CHECK (Production_year >= 1900),
+    Run_time INTEGER NOT NULL CHECK (Run_time > 0),
+    FOREIGN KEY (movie_media_id) REFERENCES MEDIA(Media_id)
+);
+
+
+CREATE TABLE SERIES (
+    series_media_id INTEGER PRIMARY KEY,
+    Number_of_seasons INTEGER NOT NULL CHECK (Number_of_seasons >= 1),
+    Start_date DATE, 
+    FOREIGN KEY (series_media_id) REFERENCES MEDIA(Media_id)
+);
+
+
+CREATE TABLE EPISODE (
+    Episode_no INTEGER NOT NULL CHECK (Episode_no >= 1),
+    Episode_name VARCHAR(255) NOT NULL,
+    series_media_id INTEGER NOT NULL,
+    PRIMARY KEY (Episode_no, Episode_name), -- Composite primary key
+    FOREIGN KEY (series_media_id) REFERENCES SERIES(series_media_id)
+);
+
+CREATE TABLE STORAGE_LOCATION (
+    Loc_id SERIAL PRIMARY KEY,
+    Path VARCHAR(255) NOT NULL, 
+    Server VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE IS_INSIDE (
+    media_id INT NOT NULL,
+    watchlist_id INT NOT NULL,
+    PRIMARY KEY (media_id, watchlist_id),
+    FOREIGN KEY (media_id) REFERENCES media(media_id),
+    FOREIGN KEY (watchlist_id) REFERENCES WATCH_LATER_LIST(Watchlist_id)
+);
+
+
+CREATE TABLE WATCH (
+    media_id INT NOT NULL,
+    user_id INT NOT NULL,
+    PRIMARY KEY (media_id),
+    FOREIGN KEY (media_id) REFERENCES media(media_id),
+    FOREIGN KEY (user_id) REFERENCES Users(user_id)
+);
+
+
+CREATE TABLE COMPANY (
+    Comp_id SERIAL PRIMARY KEY,
+    Comp_name VARCHAR(255) NOT NULL ,
+    Establish_year INTEGER NOT NULL CHECK (Establish_year >= 0), -- Assuming years are non-negative
+    Comp_email VARCHAR(255) NOT NULL, 
+    Comp_phone VARCHAR(255) NOT NULL 
+);
+
+
+CREATE TABLE COMMENT (
+    Comment_id SERIAL PRIMARY KEY,
+    Comment VARCHAR(255) NOT NULL,
+    Media_id INTEGER NOT NULL,
+    User_id INTEGER NOT NULL,
+    FOREIGN KEY (Media_id) REFERENCES MEDIA(Media_id),
+    FOREIGN KEY (User_id) REFERENCES USERS(user_id) 
+);
+
+
+CREATE TABLE USER_RATE (
+    rate_id SERIAL PRIMARY KEY,
+    Rate INTEGER NOT NULL CHECK (Rate BETWEEN 1 AND 10),
+    Media_id INTEGER NOT NULL,
+    User_id INTEGER NOT NULL,
+    FOREIGN KEY (Media_id) REFERENCES MEDIA(Media_id),
+    FOREIGN KEY (User_id) REFERENCES USERS(user_id),
+    UNIQUE (Media_id, User_id) -- Ensure only one rating per user and media
+);
+
+
+CREATE TABLE WATCH_LATER_LIST (
+    Watchlist_id SERIAL PRIMARY KEY,
+    Media_id INTEGER NOT NULL,
+    FOREIGN KEY (Media_id) REFERENCES MEDIA(Media_id)
+);
+
+
+ALTER TABLE WATCH_LATER_LIST
+ADD COLUMN User_id INTEGER NOT NULL,
+ADD CONSTRAINT fk_watchlist_user FOREIGN KEY (User_id) REFERENCES USERS(user_id);
+
+
+ALTER TABLE subscription
+ADD COLUMN User_id INTEGER NOT NULL,
+ADD COLUMN Payment_id INTEGER, 
+ADD CONSTRAINT fk_subscription_user FOREIGN KEY (User_id) REFERENCES USERS(user_id),
+ADD CONSTRAINT fk_subscription_payment FOREIGN KEY (Payment_id) REFERENCES PAYMENT_HISTORY(Payment_id);
+
+
+ALTER TABLE MEDIA
+ADD COLUMN Loc_id INTEGER,
+ADD COLUMN Comp_id INTEGER,
+ADD CONSTRAINT fk_media_location FOREIGN KEY (Loc_id) REFERENCES STORAGE_LOCATION(Loc_id),
+ADD CONSTRAINT fk_media_company FOREIGN KEY (Comp_id) REFERENCES COMPANY(Comp_id);
+
+
+CREATE TABLE ACTOR (
+    media_id INT NOT NULL,
+    actor_full_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (media_id, actor_full_name),
+    FOREIGN KEY (media_id) REFERENCES media(media_id)
+);
+
+
+CREATE TABLE PRODUCER(
+    media_id INT NOT NULL,
+    producer_full_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (media_id, producer_full_name),
+    FOREIGN KEY (media_id) REFERENCES media(media_id)
+);
